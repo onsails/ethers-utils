@@ -95,7 +95,7 @@
 
             buildPhaseCargoCommand = ''
               mkdir -p $out
-              cargo nextest archive --archive-file $out/archive.tar.zst
+              cargo nextest archive --archive-file $out/archive.tar.zst --all-features
             '';
           };
         in

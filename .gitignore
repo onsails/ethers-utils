@@ -5,3 +5,4 @@ devenv.lock
 .pre-commit-config.yaml
 .env
 .secrets
+result

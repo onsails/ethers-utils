@@ -10,6 +10,9 @@ documentation = "https://docs.rs/ethers-utils"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
+[features]
+erc20 = []
+
 [dependencies]
 ethers = "1.0.2"
 async-trait = "0.1.60"

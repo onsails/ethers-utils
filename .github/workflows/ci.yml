@@ -9,6 +9,8 @@ on:
 
 env:
   CACHIX_REPO: onsails-oss
+  # prevent github rate limit
+  NIX_CONFIG: "access-tokens = github.com=${{ secrets.GITHUB_TOKEN }}"
 
 jobs:
   test:
