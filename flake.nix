@@ -114,11 +114,9 @@
                 sccache
                 cargo-watch
                 cargo-nextest
+                cargo-release
               ] ++ buildInputs;
 
-              # env.RUSTFLAGS = (builtins.map (a: ''-L ${a}/lib'') nativeBuildInputs) ++ (lib.optionals stdenv.isDarwin (with darwin.apple_sdk; [
-              #   "-L framework=${frameworks.Security}/Library/Frameworks"
-              # ]));
               env.RUSTFLAGS = (builtins.map (a: ''-L ${a}/lib'') nativeBuildInputs) ++ (lib.optionals stdenv.isDarwin (with darwin.apple_sdk; [
                 "-L framework=${frameworks.Security}/Library/Frameworks"
               ]));
@@ -133,6 +131,12 @@
               scripts.cargo-udeps.exec = ''
                 PATH=${fenix.packages.${system}.latest.rustc}/bin:$PATH
                 ${pkgs.cargo-udeps}/bin/cargo-udeps $@
+              '';
+
+              # https://github.com/nektos/act/issues/1184#issuecomment-1248575427
+              # non-root runner is required for nix
+              scripts.act.exec = ''
+                ${pkgs.act}/bin/act -P ubuntu-latest=ghcr.io/catthehacker/ubuntu:runner-latest $@
               '';
 
               # https://devenv.sh/pre-commit-hooks/
