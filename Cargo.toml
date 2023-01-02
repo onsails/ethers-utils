@@ -3,6 +3,10 @@ name = "ethers-utils"
 version = "0.1.0"
 edition = "2021"
 
+description = "Extensions for ethers"
+license-file = "LICENSE.txt"
+homepage = "https://github.com/onsails/ethers-utils"
+
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
