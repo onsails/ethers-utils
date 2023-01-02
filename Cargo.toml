@@ -4,7 +4,7 @@ version = "0.1.3"
 edition = "2021"
 
 description = "Extensions for ethers"
-license-file = "LICENSE.txt"
+license = "MIT"
 homepage = "https://github.com/onsails/ethers-utils"
 documentation = "https://docs.rs/ethers-utils"
 
