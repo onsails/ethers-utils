@@ -143,7 +143,8 @@
               # https://github.com/nektos/act/issues/1184#issuecomment-1248575427
               # non-root runner is required for nix
               scripts.act.exec = ''
-                ${pkgs.act}/bin/act -P ubuntu-latest=ghcr.io/catthehacker/ubuntu:runner-latest $@
+                ${pkgs.act}/bin/act -P ubuntu-latest=ghcr.io/catthehacker/ubuntu:runner-latest \
+                $@
               '';
 
               # https://devenv.sh/pre-commit-hooks/

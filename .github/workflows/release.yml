@@ -7,6 +7,11 @@ on:
         required: true
         type: string
 
+env:
+  CACHIX_REPO: onsails-oss
+  # prevent github rate limit
+  NIX_CONFIG: "access-tokens = github.com=${{ secrets.GITHUB_TOKEN }}"
+
 jobs:
   make-release-pr:
     permissions:
@@ -16,11 +21,22 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
-      - uses: chainguard-dev/actions/setup-gitsign@main
-      - name: Install cargo-release
-        uses: taiki-e/install-action@v2
+      # - uses: chainguard-dev/actions/setup-gitsign@main
+      - uses: cachix/install-nix-action@v17
         with:
-          tool: cargo-release,cargo-semver-checks
+          nix_path: nixpkgs=channel:nixos-unstable
+      - uses: cachix/cachix-action@v12
+        with:
+          name: ${{ env.CACHIX_REPO }}
+          authToken: '${{ secrets.CACHIX_AUTH_TOKEN }}'
+          extraPullNames: nix-community
+      - name: Install cargo tools
+        run: |-
+          nix-env -f '<nixpkgs>' -iA cargo-release cargo-semver-checks
+      # - name: Install cargo-release
+      #   uses: taiki-e/install-action@v2
+      #   with:
+      #     tool: cargo-release,cargo-semver-checks
 
       - uses: cargo-bins/release-pr@v2
         with:
