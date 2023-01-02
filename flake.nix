@@ -15,6 +15,7 @@
         nixpkgs.follows = "nixpkgs";
       };
     };
+    nix-rust-utils.url = "github:onsails/nix-rust-utils";
   };
 
   outputs =
@@ -25,6 +26,7 @@
     , devenv
     , crane
     , nixpkgs-unstable
+    , nix-rust-utils
     } @ inputs:
     flake-utils.lib.eachDefaultSystem (system:
     let
@@ -66,15 +68,10 @@
         with pkgs;
         let
           craneLib = crane.lib.${system}.overrideToolchain rustToolchain;
-          # src = craneLib.cleanCargoSource ./.;
-          # https://github.com/ipetkov/crane/blob/d78cb0453b9823d2102f7b22bb98686215462416/docs/API.md#libfiltercargosources
-          jsonFilter = path: _type:
-            !builtins.isNull (builtins.match ".*json$" path);
-          jsonOrCargo = path: type:
-            (jsonFilter path type) || (craneLib.filterCargoSources path type);
-          src = lib.cleanSourceWith {
+          src = nix-rust-utils.cleanSourceWithExts {
+            inherit pkgs craneLib;
             src = ./.;
-            filter = jsonOrCargo;
+            exts = "json";
           };
           cargoArtifacts = craneLib.buildDepsOnly {
             inherit src nativeBuildInputs;
@@ -85,18 +82,8 @@
             # # until this is clear https://github.com/ipetkov/crane/discussions/196
             doCheck = false;
           };
-          rustTest = craneLib.mkCargoDerivation {
-            inherit src nativeBuildInputs buildInputs;
-
-            cargoArtifacts = craneLib.buildDepsOnly {
-              inherit src nativeBuildInputs buildInputs;
-              CARGO_PROFILE = "";
-            };
-
-            buildPhaseCargoCommand = ''
-              mkdir -p $out
-              cargo nextest archive --archive-file $out/archive.tar.zst --all-features
-            '';
+          rustTest = nix-rust-utils.mkNextest {
+            inherit src craneLib pkgs buildInputs;
           };
         in
         {
@@ -113,49 +100,40 @@
         devenv.lib.mkShell {
           inherit inputs pkgs;
 
-          modules = with pkgs; [
-            {
-              env.RUSTC_WRAPPER = "${pkgs.sccache}/bin/sccache";
+          modules = with pkgs;
+            (nix-rust-utils.mkDevenvModules {
+              inherit pkgs rustToolchain;
+              libs = nativeBuildInputs;
+            }) ++ [
+              {
+                env.RUSTC_WRAPPER = "${pkgs.sccache}/bin/sccache";
 
-              packages = [
-                sccache
-                cargo-watch
-                cargo-nextest
-                unstable.cargo-release
-              ] ++ buildInputs;
+                packages = [
+                  sccache
+                  cargo-watch
+                  cargo-nextest
+                  unstable.cargo-release
+                ] ++ buildInputs;
 
-              env.RUSTFLAGS = (builtins.map (a: ''-L ${a}/lib'') nativeBuildInputs) ++ (lib.optionals stdenv.isDarwin (with darwin.apple_sdk; [
-                "-L framework=${frameworks.Security}/Library/Frameworks"
-              ]));
+                # https://devenv.sh/languages/
+                languages.nix.enable = true;
 
-              # https://devenv.sh/languages/
-              languages.nix.enable = true;
-              languages.rust = {
-                enable = true;
-                version = "stable";
-              };
+                # https://github.com/nektos/act/issues/1184#issuecomment-1248575427
+                # non-root runner is required for nix
+                scripts.act.exec = ''
+                  ${pkgs.act}/bin/act -P ubuntu-latest=ghcr.io/catthehacker/ubuntu:runner-latest \
+                  $@
+                '';
 
-              scripts.cargo-udeps.exec = ''
-                PATH=${fenix.packages.${system}.latest.rustc}/bin:$PATH
-                ${pkgs.cargo-udeps}/bin/cargo-udeps $@
-              '';
+                # https://devenv.sh/pre-commit-hooks/
+                pre-commit.hooks = {
+                  shellcheck.enable = true;
 
-              # https://github.com/nektos/act/issues/1184#issuecomment-1248575427
-              # non-root runner is required for nix
-              scripts.act.exec = ''
-                ${pkgs.act}/bin/act -P ubuntu-latest=ghcr.io/catthehacker/ubuntu:runner-latest \
-                $@
-              '';
-
-              # https://devenv.sh/pre-commit-hooks/
-              pre-commit.hooks = {
-                shellcheck.enable = true;
-
-                clippy.enable = true;
-                rustfmt.enable = true;
-              };
-            }
-          ];
+                  clippy.enable = true;
+                  rustfmt.enable = true;
+                };
+              }
+            ];
         };
     });
 }
