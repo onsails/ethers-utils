@@ -1,6 +1,7 @@
 {
   inputs = {
     nixpkgs.url = "github:nixos/nixpkgs/release-22.11";
+    nixpkgs-unstable.url = "github:nixos/nixpkgs/nixpkgs-unstable";
     devenv.url = "github:cachix/devenv";
     flake-utils.url = "github:numtide/flake-utils";
     fenix = {
@@ -23,6 +24,7 @@
     , fenix
     , devenv
     , crane
+    , nixpkgs-unstable
     } @ inputs:
     flake-utils.lib.eachDefaultSystem (system:
     let
@@ -31,6 +33,9 @@
           inherit system;
           overlays = [
             fenix.overlays.default
+            (self: super: {
+              unstable = (import nixpkgs-unstable { inherit system; });
+            })
           ];
         };
 
@@ -38,10 +43,12 @@
         [
           pkg-config
           openssl
-        ] ++ lib.optionals stdenv.isDarwin (with darwin.apple_sdk; [
-          libiconv
-          frameworks.Security
-        ]);
+        ] ++ lib.optionals
+          stdenv.isDarwin
+          (with darwin.apple_sdk; [
+            libiconv
+            frameworks.Security
+          ]);
 
       buildInputs = with pkgs; [
         cargo-nextest
@@ -114,7 +121,7 @@
                 sccache
                 cargo-watch
                 cargo-nextest
-                cargo-release
+                unstable.cargo-release
               ] ++ buildInputs;
 
               env.RUSTFLAGS = (builtins.map (a: ''-L ${a}/lib'') nativeBuildInputs) ++ (lib.optionals stdenv.isDarwin (with darwin.apple_sdk; [
