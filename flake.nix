@@ -113,6 +113,7 @@
                   cargo-watch
                   cargo-nextest
                   unstable.cargo-release
+                  cargo-semver-checks
                 ] ++ buildInputs;
 
                 # https://devenv.sh/languages/
@@ -123,6 +124,11 @@
                 scripts.act.exec = ''
                   ${pkgs.act}/bin/act -P ubuntu-latest=ghcr.io/catthehacker/ubuntu:runner-latest \
                   $@
+                '';
+
+                scripts.release.exec = ''
+                  cargo semver-checks check-release
+                  cargo release --execute $@
                 '';
 
                 # https://devenv.sh/pre-commit-hooks/
