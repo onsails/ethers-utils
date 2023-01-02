@@ -20,7 +20,7 @@ jobs:
       - name: Install cargo-release
         uses: taiki-e/install-action@v1
         with:
-          tool: cargo-release
+          tool: cargo-release,cargo-semver-checks
 
       - uses: cargo-bins/release-pr@v2
         with:
