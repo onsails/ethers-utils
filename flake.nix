@@ -128,6 +128,10 @@
 
                 scripts.release.exec = ''
                   cargo semver-checks check-release
+                  release-unchecked $@
+                '';
+
+                scripts.release-unchecked.exec = ''
                   cargo release --execute $@
                 '';
 
