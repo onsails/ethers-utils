@@ -812,7 +812,7 @@ dependencies = [
 
 [[package]]
 name = "ethers-utils"
-version = "1.0.0"
+version = "0.1.4"
 dependencies = [
  "async-trait",
  "ethers",
