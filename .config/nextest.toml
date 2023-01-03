@@ -1,0 +1,2 @@
+[profile.ci]
+retries = { backoff = "exponential", count = 20, delay = "1s", jitter = false, max-delay = "30s" }

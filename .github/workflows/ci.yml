@@ -35,7 +35,7 @@ jobs:
           nix build -j auto --print-build-logs .#rustTest
           nix run nixpkgs#cargo-nextest -- nextest run --archive-file result/archive.tar.zst --workspace-remap .
         env:
-          # NEXTEST_PROFILE: ci
+          NEXTEST_PROFILE: ci
           OPTIMISM_URL: ${{ secrets.OPTIMISM_URL }}
           ARBITRUM_URL: ${{ secrets.ARBITRUM_URL }}
           ETHEREUM_URL: ${{ secrets.ETHEREUM_URL }}
